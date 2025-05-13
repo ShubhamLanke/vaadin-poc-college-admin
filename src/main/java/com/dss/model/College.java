@@ -1,9 +1,12 @@
 package com.dss.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.util.List;
 
 @Entity
+@Data
 public class College {
 
     @Id
