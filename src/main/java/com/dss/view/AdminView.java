@@ -7,6 +7,7 @@ import com.dss.model.College;
 import com.dss.model.Student;
 import com.dss.presenter.AdminPresenter;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
@@ -50,6 +51,7 @@ public class AdminView extends BaseView<AdminPresenter> {
 
         Button add = new Button("Add College");
         Button delete = new Button("Delete College");
+        Button edit = new Button("Edit College");
 
         add.addClickListener(e -> openCollegeForm(new College()));
 
@@ -60,6 +62,15 @@ public class AdminView extends BaseView<AdminPresenter> {
             }
         });
 
+        edit.addClickListener(e -> {
+            College selected = collegeGrid.asSingleSelect().getValue();
+            if (selected != null) {
+                openCollegeForm(selected);
+            } else {
+                Notification.show("Select a college to edit");
+            }
+        });
+
         collegeGrid.asSingleSelect().addValueChangeListener(e -> {
             selectedCollege = e.getValue();
             if (selectedCollege != null) {
@@ -67,7 +78,13 @@ public class AdminView extends BaseView<AdminPresenter> {
             }
         });
 
-        add(new Div(add, delete));
+        add.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+        HorizontalLayout collegeButtons = new HorizontalLayout(add, edit, delete);
+        Div collegeSection = new Div(collegeButtons, collegeGrid);
+        collegeSection.setWidthFull();
+        add(collegeSection);
     }
 
     private void setupStudentGrid() {
@@ -76,6 +93,7 @@ public class AdminView extends BaseView<AdminPresenter> {
 
         Button add = new Button("Add Student");
         Button delete = new Button("Delete Student");
+        Button edit = new Button("Edit Student");
 
         add.addClickListener(e -> {
             if (selectedCollege == null) {
@@ -94,7 +112,22 @@ public class AdminView extends BaseView<AdminPresenter> {
             }
         });
 
-        add(new Div(add, delete));
+        edit.addClickListener(e -> {
+            Student selected = studentGrid.asSingleSelect().getValue();
+            if (selected != null) {
+                openStudentForm(selected);
+            } else {
+                Notification.show("Select a student to edit");
+            }
+        });
+
+        add.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+        HorizontalLayout studentButtons = new HorizontalLayout(add, edit, delete);
+        Div studentSection = new Div(studentButtons, studentGrid);
+        studentSection.setWidthFull();
+        add(studentSection);
     }
 
     private void openCollegeForm(College college) {
@@ -122,8 +155,15 @@ public class AdminView extends BaseView<AdminPresenter> {
         form.setStudent(student);
 
         form.setOnSave(saved -> {
-            getPresenter().saveStudent(saved);
-            dialog.close();
+            form.showProgress(true);
+            form.setSaveEnabled(false);
+
+            getUI().ifPresent(ui -> ui.access(() -> {
+                getPresenter().saveStudent(saved);
+                form.showProgress(false);
+                form.setSaveEnabled(true);
+                dialog.close();
+            }));
         });
 
         form.setOnCancel(dialog::close);
