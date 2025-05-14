@@ -10,10 +10,10 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
@@ -35,9 +35,17 @@ public class AdminView extends BaseView<AdminPresenter> {
         setupCollegeGrid();
         setupStudentGrid();
 
-        HorizontalLayout layout = new HorizontalLayout(collegeGrid, studentGrid);
+        VerticalLayout collegeSection = new VerticalLayout(collegeButtonsLayout(), collegeGrid);
+        collegeSection.setSizeFull();
+        collegeSection.setPadding(false);
+
+        VerticalLayout studentSection = new VerticalLayout(studentButtonsLayout(), studentGrid);
+        studentSection.setSizeFull();
+        studentSection.setPadding(false);
+
+        HorizontalLayout layout = new HorizontalLayout(collegeSection, studentSection);
         layout.setSizeFull();
-        layout.setFlexGrow(1, collegeGrid, studentGrid);
+        layout.setFlexGrow(1, collegeSection, studentSection);
 
         add(layout);
         getPresenter().loadColleges();
@@ -49,28 +57,6 @@ public class AdminView extends BaseView<AdminPresenter> {
         collegeGrid.addColumn(College::getPhoneNo).setHeader("Phone");
         collegeGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
 
-        Button add = new Button("Add College");
-        Button delete = new Button("Delete College");
-        Button edit = new Button("Edit College");
-
-        add.addClickListener(e -> openCollegeForm(new College()));
-
-        delete.addClickListener(e -> {
-            College selected = collegeGrid.asSingleSelect().getValue();
-            if (selected != null) {
-                getPresenter().deleteCollege(selected);
-            }
-        });
-
-        edit.addClickListener(e -> {
-            College selected = collegeGrid.asSingleSelect().getValue();
-            if (selected != null) {
-                openCollegeForm(selected);
-            } else {
-                Notification.show("Select a college to edit");
-            }
-        });
-
         collegeGrid.asSingleSelect().addValueChangeListener(e -> {
             selectedCollege = e.getValue();
             if (selectedCollege != null) {
@@ -78,24 +64,40 @@ public class AdminView extends BaseView<AdminPresenter> {
             }
         });
 
-        add.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
-
-        HorizontalLayout collegeButtons = new HorizontalLayout(add, edit, delete);
-        Div collegeSection = new Div(collegeButtons, collegeGrid);
-        collegeSection.setWidthFull();
-        add(collegeSection);
+        add(collegeGrid);
     }
 
     private void setupStudentGrid() {
         studentGrid.addColumn(Student::getName).setHeader("Name");
         studentGrid.addColumn(Student::getEmail).setHeader("Email");
+        add(studentGrid);
+    }
 
-        Button add = new Button("Add Student");
-        Button delete = new Button("Delete Student");
-        Button edit = new Button("Edit Student");
+    private HorizontalLayout collegeButtonsLayout() {
+        Button add = new Button("Add College", e -> openCollegeForm(new College()));
+        Button edit = new Button("Edit College", e -> {
+            College selected = collegeGrid.asSingleSelect().getValue();
+            if (selected != null) {
+                openCollegeForm(selected);
+            } else {
+                Notification.show("Select a college to edit");
+            }
+        });
+        Button delete = new Button("Delete College", e -> {
+            College selected = collegeGrid.asSingleSelect().getValue();
+            if (selected != null) {
+                getPresenter().deleteCollege(selected);
+            }
+        });
 
-        add.addClickListener(e -> {
+        add.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+        return new HorizontalLayout(add, edit, delete);
+    }
+
+    private HorizontalLayout studentButtonsLayout() {
+        Button add = new Button("Add Student", e -> {
             if (selectedCollege == null) {
                 Notification.show("Please select a college first.");
                 return;
@@ -105,14 +107,7 @@ public class AdminView extends BaseView<AdminPresenter> {
             openStudentForm(newStudent);
         });
 
-        delete.addClickListener(e -> {
-            Student selected = studentGrid.asSingleSelect().getValue();
-            if (selected != null) {
-                getPresenter().deleteStudent(selected);
-            }
-        });
-
-        edit.addClickListener(e -> {
+        Button edit = new Button("Edit Student", e -> {
             Student selected = studentGrid.asSingleSelect().getValue();
             if (selected != null) {
                 openStudentForm(selected);
@@ -121,13 +116,17 @@ public class AdminView extends BaseView<AdminPresenter> {
             }
         });
 
+        Button delete = new Button("Delete Student", e -> {
+            Student selected = studentGrid.asSingleSelect().getValue();
+            if (selected != null) {
+                getPresenter().deleteStudent(selected);
+            }
+        });
+
         add.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
 
-        HorizontalLayout studentButtons = new HorizontalLayout(add, edit, delete);
-        Div studentSection = new Div(studentButtons, studentGrid);
-        studentSection.setWidthFull();
-        add(studentSection);
+        return new HorizontalLayout(add, edit, delete);
     }
 
     private void openCollegeForm(College college) {
