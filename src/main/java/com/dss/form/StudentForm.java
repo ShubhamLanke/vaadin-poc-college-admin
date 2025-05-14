@@ -14,6 +14,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.validator.DateRangeValidator;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.function.Consumer;
@@ -32,7 +33,9 @@ public class StudentForm extends FormLayout {
     private final ProgressBar progressBar = new ProgressBar();
 
     private final Binder<Student> binder = new Binder<>(Student.class);
+    @Setter
     private Consumer<Student> onSave;
+    @Setter
     private Runnable onCancel;
 
     public StudentForm() {
@@ -105,15 +108,17 @@ public class StudentForm extends FormLayout {
         });
     }
 
+    public void showProgress(boolean visible) {
+        progressBar.setVisible(visible);
+        progressBar.setIndeterminate(visible);
+    }
+
+    public void setSaveEnabled(boolean enabled) {
+        save.setEnabled(enabled);
+    }
+
     public void setStudent(Student student) {
         binder.setBean(student);
     }
 
-    public void setOnSave(Consumer<Student> listener) {
-        this.onSave = listener;
-    }
-
-    public void setOnCancel(Runnable listener) {
-        this.onCancel = listener;
-    }
 }

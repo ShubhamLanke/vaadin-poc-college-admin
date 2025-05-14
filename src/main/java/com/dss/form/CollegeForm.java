@@ -11,6 +11,7 @@ import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
+import lombok.Setter;
 
 import java.util.function.Consumer;
 
@@ -28,7 +29,9 @@ public class CollegeForm extends FormLayout {
     private final ProgressBar progressBar = new ProgressBar();
 
     private final Binder<College> binder = new Binder<>(College.class);
+    @Setter
     private Consumer<College> onSave;
+    @Setter
     private Runnable onCancel;
 
     public CollegeForm() {
@@ -101,11 +104,4 @@ public class CollegeForm extends FormLayout {
         binder.setBean(college);
     }
 
-    public void setOnSave(Consumer<College> listener) {
-        this.onSave = listener;
-    }
-
-    public void setOnCancel(Runnable listener) {
-        this.onCancel = listener;
-    }
 }
